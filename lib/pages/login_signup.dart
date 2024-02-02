@@ -34,10 +34,11 @@ class _LoginSignUpPageState extends State<LoginSignUpPage> {
     });
   }
 
-  addStorageData(UserModel modelData)async{
-    Reference ref = FirebaseStorage.instance.ref("profilePictures/${modelData.uuid}.jpg");
+  addStorageData(UserModel modelData) async {
+    Reference ref =
+        FirebaseStorage.instance.ref("profilePictures/${modelData.uuid}.jpg");
     UploadTask task = ref.putData(selectedImage!);
-    await task.whenComplete(()async{
+    await task.whenComplete(() async {
       String downloadUrl = await ref.getDownloadURL();
       print(downloadUrl);
       modelData.profilePicture = downloadUrl;
@@ -46,11 +47,15 @@ class _LoginSignUpPageState extends State<LoginSignUpPage> {
     final storeData = FirebaseFirestore.instance.collection("/users");
     storeData.doc(modelData.uuid).set(modelData.toJson()).then((value) {
       setState(() {
+        selectedImage = null;
+        nameController.text = "";
+        emailController.text = "";
+        passwordController.clear();
         isLoading = false;
+        Navigator.of(context).pushReplacementNamed("/home");
       });
     });
   }
-
 
   loginOrSignUp() async {
     if (formKey.currentState!.validate()) {
@@ -65,9 +70,9 @@ class _LoginSignUpPageState extends State<LoginSignUpPage> {
           setState(() {
             isLoading = true;
           });
-          try{
+          try {
             final userCreated =
-            await FirebaseAuth.instance.createUserWithEmailAndPassword(
+                await FirebaseAuth.instance.createUserWithEmailAndPassword(
               email: emailController.text.toLowerCase().trim(),
               password: passwordController.text.trim(),
             );
@@ -79,20 +84,37 @@ class _LoginSignUpPageState extends State<LoginSignUpPage> {
             );
 
             await addStorageData(model);
-          }catch(e){
+          } catch (e) {
             ScaffoldMessenger.of(context).clearSnackBars();
-            ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(e.toString())));
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(e.toString())));
           }
-
+          setState(() {
+            isLoading = false;
+          });
         }
       } else {
         //login module
-        final userLogin = await FirebaseAuth.instance
-            .signInWithEmailAndPassword(
-                email: emailController.text, password: passwordController.text);
+        try {
+          setState(() {
+            isLoading = true;
+          });
+          final user = await FirebaseAuth.instance.signInWithEmailAndPassword(
+              email: emailController.text.toLowerCase().trim(),
+              password: passwordController.text.trim()).then((value) {
+            setState(() {
+              isLoading = false;
+            });
+            Navigator.of(context).pushReplacementNamed("/home");
+          });
+          print(user.user!.uid);
+        } catch (e) {
+          ScaffoldMessenger.of(context).clearSnackBars();
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(e.toString())));
+        }
         setState(() {
-          isLoading = true;
+          isLoading = false;
         });
       }
     }
@@ -186,7 +208,8 @@ class _LoginSignUpPageState extends State<LoginSignUpPage> {
                                     if (value!.isEmpty) {
                                       return "Please Enter Email Address";
                                     } else if (!value
-                                        .toString().trim()
+                                        .toString()
+                                        .trim()
                                         .isValidEmail()) {
                                       return "Please Enter Valid Email Address";
                                     }
@@ -208,7 +231,8 @@ class _LoginSignUpPageState extends State<LoginSignUpPage> {
                                     if (value!.isEmpty) {
                                       return "Please Enter Password";
                                     } else if (!value
-                                        .toString().trim()
+                                        .toString()
+                                        .trim()
                                         .isValidPassword()) {
                                       return "Please Enter valid Password";
                                     }
