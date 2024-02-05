@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:whatsapp_web_clone/defaultColors/default_colors.dart';
@@ -5,7 +6,7 @@ import 'package:whatsapp_web_clone/defaultColors/default_colors.dart';
 import 'web_pages_routes.dart';
 
 String initialRoute = '/';
-void main() async {
+Future<void> main() async {
   await Firebase.initializeApp(
       options: const FirebaseOptions(
           apiKey: "AIzaSyAnnXwuHyZ37Q1Ts5HqnokboO1Uv1oqqcs",
@@ -15,6 +16,11 @@ void main() async {
           messagingSenderId: "805157363636",
           appId: "1:805157363636:web:b54c706ded635f6df5dce1",
           measurementId: "G-19Y63M4RYJ"));
+
+  User? currentUser = FirebaseAuth.instance.currentUser;
+  if (currentUser != null) {
+    initialRoute = '/homePage';
+  }
   runApp(const MyApp());
 }
 

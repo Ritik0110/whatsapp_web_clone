@@ -34,25 +34,29 @@ class _LoginSignUpPageState extends State<LoginSignUpPage> {
     });
   }
 
-  addStorageData(UserModel modelData) async {
+  addStorageData(UserModel modelData) {
+    // save and upload image to firebase storage
     Reference ref =
-        FirebaseStorage.instance.ref("profilePictures/${modelData.uuid}.jpg");
+       FirebaseStorage.instance.ref("profilePictures/${modelData.uuid}.jpg");
     UploadTask task = ref.putData(selectedImage!);
-    await task.whenComplete(() async {
+    task.whenComplete(() async {
       String downloadUrl = await ref.getDownloadURL();
-      print(downloadUrl);
       modelData.profilePicture = downloadUrl;
-    });
-    print(modelData.toJson());
-    final storeData = FirebaseFirestore.instance.collection("/users");
-    storeData.doc(modelData.uuid).set(modelData.toJson()).then((value) {
-      setState(() {
-        selectedImage = null;
-        nameController.text = "";
-        emailController.text = "";
-        passwordController.clear();
-        isLoading = false;
-        Navigator.of(context).pushReplacementNamed("/home");
+
+
+      await FirebaseAuth.instance.currentUser!.updateDisplayName(modelData.name);
+      await FirebaseAuth.instance.currentUser!.updatePhotoURL(downloadUrl);
+      // set path to fireStore database to store user data
+      final storeData = FirebaseFirestore.instance.collection("/users");
+      storeData.doc(modelData.uuid).set(modelData.toJson()).then((value) {
+        setState(() {
+          selectedImage = null;
+          nameController.text = "";
+          emailController.text = "";
+          passwordController.clear();
+          isLoading = false;
+          Navigator.of(context).pushReplacementNamed("/home");
+        });
       });
     });
   }
@@ -71,6 +75,7 @@ class _LoginSignUpPageState extends State<LoginSignUpPage> {
             isLoading = true;
           });
           try {
+            // register user with email and password
             final userCreated =
                 await FirebaseAuth.instance.createUserWithEmailAndPassword(
               email: emailController.text.toLowerCase().trim(),
@@ -85,6 +90,7 @@ class _LoginSignUpPageState extends State<LoginSignUpPage> {
 
             await addStorageData(model);
           } catch (e) {
+            print(e);
             ScaffoldMessenger.of(context).clearSnackBars();
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text(e.toString())));
@@ -107,8 +113,8 @@ class _LoginSignUpPageState extends State<LoginSignUpPage> {
             });
             Navigator.of(context).pushReplacementNamed("/home");
           });
-          print(user.user!.uid);
         } catch (e) {
+          print(e);
           ScaffoldMessenger.of(context).clearSnackBars();
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text(e.toString())));
