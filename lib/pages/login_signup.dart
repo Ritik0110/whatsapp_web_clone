@@ -25,6 +25,7 @@ class _LoginSignUpPageState extends State<LoginSignUpPage> {
   bool isLoading = false;
   bool isPasswordVisible = true;
 
+
   selectImage() async {
     FilePickerResult? filePick =
         await FilePicker.platform.pickFiles(type: FileType.image);
@@ -37,14 +38,14 @@ class _LoginSignUpPageState extends State<LoginSignUpPage> {
   addStorageData(UserModel modelData) {
     // save and upload image to firebase storage
     Reference ref =
-       FirebaseStorage.instance.ref("profilePictures/${modelData.uuid}.jpg");
+        FirebaseStorage.instance.ref("profilePictures/${modelData.uuid}.jpg");
     UploadTask task = ref.putData(selectedImage!);
     task.whenComplete(() async {
       String downloadUrl = await ref.getDownloadURL();
       modelData.profilePicture = downloadUrl;
 
-
-      await FirebaseAuth.instance.currentUser!.updateDisplayName(modelData.name);
+      await FirebaseAuth.instance.currentUser!
+          .updateDisplayName(modelData.name);
       await FirebaseAuth.instance.currentUser!.updatePhotoURL(downloadUrl);
       // set path to fireStore database to store user data
       final storeData = FirebaseFirestore.instance.collection("/users");
@@ -55,7 +56,7 @@ class _LoginSignUpPageState extends State<LoginSignUpPage> {
           emailController.text = "";
           passwordController.clear();
           isLoading = false;
-          Navigator.of(context).pushReplacementNamed("/home");
+          Navigator.of(context).pushReplacementNamed("/homePage");
         });
       });
     });
@@ -105,13 +106,15 @@ class _LoginSignUpPageState extends State<LoginSignUpPage> {
           setState(() {
             isLoading = true;
           });
-          final user = await FirebaseAuth.instance.signInWithEmailAndPassword(
-              email: emailController.text.toLowerCase().trim(),
-              password: passwordController.text.trim()).then((value) {
+          final user = await FirebaseAuth.instance
+              .signInWithEmailAndPassword(
+                  email: emailController.text.toLowerCase().trim(),
+                  password: passwordController.text.trim())
+              .then((value) {
             setState(() {
               isLoading = false;
             });
-            Navigator.of(context).pushReplacementNamed("/home");
+            Navigator.of(context).pushReplacementNamed("/homePage");
           });
         } catch (e) {
           print(e);
@@ -189,7 +192,6 @@ class _LoginSignUpPageState extends State<LoginSignUpPage> {
                                         child: const Text("Select Image"),
                                       ),
                                       20.sizedBoxHeight,
-
                                       //Name TextField
                                       commonTextField(
                                         controller: nameController,
