@@ -21,15 +21,22 @@ class _HomePageState extends State<HomePage> {
     User? currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       // Read the user data from the FireStore
+      print("${currentUser}");
+      print("${currentUser.displayName} ${currentUser.email} ${currentUser.photoURL} ${currentUser.uid}");
      currentUserData = UserModel(
         uuid: currentUser.uid,
-        email: currentUser.email!,
+        email: currentUser.email ?? "",
         password: "",
-        name: currentUser.displayName!,
-        profilePicture: currentUser.photoURL!,
+        name: currentUser.displayName ?? "",
+        profilePicture: currentUser.photoURL ?? "",
       );
-
     }
+  }
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    readCurrentUserData();
   }
   @override
   Widget build(BuildContext context) {
@@ -63,7 +70,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               )),
           Positioned(
-              top: size.height * 0.1,
+              top: size.height * 0.07,
               bottom: size.height * 0.1,
               left: size.width * 0.1,
               right: size.width * 0.1,
